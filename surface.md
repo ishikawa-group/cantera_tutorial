@@ -44,14 +44,14 @@ writer.writerow(["Distance [m]", "u [m/s]", "time [s]", "T [K]", "P [Pa]"] + gas
 
 t_res = 0.0
 for n in range(n_reactor):
-  gas.TDY = r.thermo.TDY
-  upstream.syncState()
-  net.reinitialize()
-  net.advance_to_steady_state()
-  dist = n * dx
-  u = mdot / area / r.thermo.density  # velocity
-  t_res += r.mass / mdot  # residence time
-  writer.writerow([dist, u, t_res, r.T, r.thermo.P] + list(r.thermo.X) + list(rsurf.kinetics.coverages))
+    gas.TDY = r.thermo.TDY
+    upstream.syncState()
+    net.reinitialize()
+    net.advance_to_steady_state()
+    dist = n * dx
+    u = mdot / area / r.thermo.density  # velocity
+    t_res += r.mass / mdot  # residence time
+    writer.writerow([dist, u, t_res, r.T, r.thermo.P] + list(r.thermo.X) + list(rsurf.kinetics.coverages))
 
 outfile.close()
 ```

@@ -16,19 +16,19 @@ gas.TPX = 500, ct.one_atm, "CH4:1, O2:1, AR:0.5"
 3. 反応器を設定する
 * 反応器を設定する。反応器の種類は様々であるが、最も簡単な`IdealGasReactor`を用いる
 * 反応器だけでなく、以下のような設定を通常置く
-  + `ct.Reservoir`: 反応器の前後
-  + `ct.MassFlowController`: 反応器の前
-    + upstreamとdownstreamを引数で指定
-  + `ct.PressureController`: 反応器の後
-    + upstreamとdonwstreamを引数で指定
-    + 質量流量速度を求めるデバイスをprimaryで指定(`MassFlowController`でよい)
-    + Kという定数に1.0e-5を入れるとよい？ -> 調査中
+    + `ct.Reservoir`: 反応器の前後
+    + `ct.MassFlowController`: 反応器の前
+        + upstreamとdownstreamを引数で指定
+    + `ct.PressureController`: 反応器の後
+        + upstreamとdonwstreamを引数で指定
+        + 質量流量速度を求めるデバイスをprimaryで指定(`MassFlowController`でよい)
+        + Kという定数に1.0e-5を入れるとよい？ -> 調査中
 * 反応器の設定が終わったら、**反応器のみ**を`ReactorNet`に設定する
 
 4. 化学反応をシミュレーションする
 * `ReactorNet`のメソッドを使って時間ステップを進めることができる。以下のようなメソッドがある
-  + `.advance(tout)`: `tout`まで進める
-  + `.advance_to_steady_state()`: 定常状態まで進める
+    + `.advance(tout)`: `tout`まで進める
+    + `.advance_to_steady_state()`: 定常状態まで進める
 
 ## スクリプトの例
 * 上記をまとめたスクリプトの例
@@ -66,14 +66,14 @@ writer.writerow(["Distance [m]", "u [m/s]", "time [s]", "T [K]", "P [Pa]"] + gas
 
 t_res = 0.0
 for n in range(n_reactor):
-  gas.TDY = r.thermo.TDY
-  upstream.syncState()
-  net.reinitialize()
-  net.advance_to_steady_state()
-  dist = n * dx
-  u = mdot / area / r.thermo.density  # velocity
-  t_res += r.mass / mdot  # residence time
-  writer.writerow([dist, u, t_res, r.T, r.thermo.P] + list(r.thermo.X))
+    gas.TDY = r.thermo.TDY
+    upstream.syncState()
+    net.reinitialize()
+    net.advance_to_steady_state()
+    dist = n * dx
+    u = mdot / area / r.thermo.density  # velocity
+    t_res += r.mass / mdot  # residence time
+    writer.writerow([dist, u, t_res, r.T, r.thermo.P] + list(r.thermo.X))
 
 outfile.close()
 ```
@@ -93,8 +93,8 @@ net = ct.ReactorNet([r])
 
 T = r.T
 while T < 1900:
-  net.step()
-  T = r.T
+    net.step()
+    T = r.T
 
 element = "N"
 diagram = ct.ReactionPathDiagram(gas, element)
@@ -108,9 +108,8 @@ diagram.write_dot(dot_file)
 os.system(f"dot {dot_file} -Tpng -o{img_file}")
 ```
 
-<!--
 ## Reaction - Simple?
-* 
+* Simple version
 
 ```python{cmd}
 import cantera as ct
@@ -134,8 +133,8 @@ time = 0.0
 end_time = 1.0  # seconds
 
 while time < end_time:
-  time = network.step()
-  print(f"Time: {time:.2f} s, Temperature: {reactor.T:.2f} K, Pressure: {reactor.thermo.P:.2f} Pa")
+    time = network.step()
+    print(f"Time: {time:.2f} s, Temperature: {reactor.T:.2f} K, Pressure: {reactor.thermo.P:.2f} Pa")
 
 # Final concentrations and properties
 species_names = gas.species_names
@@ -143,9 +142,8 @@ concentrations = reactor.thermo.concentrations
 
 print("Final Concentrations:")
 for name, conc in zip(species_names, concentrations):
-  print(f"{name}: {conc:.4f} mol/m³")
+    print(f"{name}: {conc:.4f} mol/m³")
 
 print(f"Final Temperature: {reactor.T:.2f} K")
 print(f"Final Pressure: {reactor.thermo.P:.2f} Pa")
 ```
--->

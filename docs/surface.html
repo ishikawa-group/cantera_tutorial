@@ -3,7 +3,7 @@
 <html lang="" >
     <head>
         <meta charset="UTF-8">
-        <title>Basic · HonKit</title>
+        <title>Surface · HonKit</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 6.0.2">
@@ -56,10 +56,8 @@
     <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="equilibrium.html" />
     
-    
-    <link rel="prev" href="./" />
+    <link rel="prev" href="reaction.html" />
     
 
     </head>
@@ -101,7 +99,7 @@
             
         </li>
     
-        <li class="chapter active" data-level="1.2" data-path="basic.html">
+        <li class="chapter " data-level="1.2" data-path="basic.html">
             
                 <a href="basic.html">
             
@@ -140,6 +138,19 @@
             
         </li>
     
+        <li class="chapter active" data-level="1.5" data-path="surface.html">
+            
+                <a href="surface.html">
+            
+                    
+                    Surface
+            
+                </a>
+            
+
+            
+        </li>
+    
 
     
 
@@ -170,7 +181,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="." >Basic</a>
+        <a href="." >Surface</a>
     </h1>
 </div>
 
@@ -185,49 +196,62 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="基本的な使用法">基本的な使用法</h1>
-<h2 id="インストール">インストール</h2>
-<ul>
-<li>pip経由で入手する: <code>pip install cantera</code></li>
-</ul>
-<h2 id="使用法">使用法</h2>
-<ol>
-<li><p>ライブラリのインポート</p>
-<pre><code class="lang-python"><span class="hljs-keyword">import</span> cantera <span class="hljs-keyword">as</span> ct
+                                <h1 id="表面反応">表面反応</h1>
+<pre><code class="lang-python{cmd}">import cantera as ct
+import csv
+
+p = ct.one_atm  # pressure: 1 atm =  1013 [Pa]
+Tin = 1500  # temperature [K]
+comp = "CH4:1, O2:1, AR:0.5"
+vin = 0.005  # inlet gas velocity [m/s]
+length = 5.0e-6  # length of reactor [m]
+area = 1.0e-4 # cross section area of reactor [m^2]
+area_cat_vol = 3149.0  # catalyst surface area [m^2/m^3]
+porosity = 1.0  # catalyst porosity
+n_reactor = 200  # numerical parameter to divide reactor
+
+filename = "ptcombust.yaml"
+gas = ct.Solution(filename, "gas")
+gas.TPX = Tin, p, comp
+mdot = vin * area * gas.density  # mass flow rate
+dx = length / n_reactor  # length of one simulation cell
+
+# define surface
+surf = ct.Interface(filename, "Pt_surf", [gas])
+surf.TP = Tin, p
+
+r = ct.IdealGasReactor(gas)
+vol = area * dx * porosity
+r.volume = area * dx
+
+upstream = ct.Reservoir(gas, name="upstream")
+downstream = ct.Reservoir(gas, name="downstream")
+m = ct.MassFlowController(upstream, r, mdot=mdot)
+v = ct.PressureController(r, downstream, primary=m, K=1.0e-5)
+
+area_cat = area_cat_vol * vol
+rsurf = ct.ReactorSurface(surf, r, A=area_cat)
+
+net = ct.ReactorNet([r])
+
+# solve
+outfile = open("catalytic_pfr.csv", "w", newline="")
+writer = csv.writer(outfile)
+writer.writerow(["Distance [m]", "u [m/s]", "time [s]", "T [K]", "P [Pa]"] + gas.species_names + surf.species_names)
+
+t_res = 0.0
+for n in range(n_reactor):
+    gas.TDY = r.thermo.TDY
+    upstream.syncState()
+    net.reinitialize()
+    net.advance_to_steady_state()
+    dist = n * dx
+    u = mdot / area / r.thermo.density  # velocity
+    t_res += r.mass / mdot  # residence time
+    writer.writerow([dist, u, t_res, r.T, r.thermo.P] + list(r.thermo.X) + list(rsurf.kinetics.coverages))
+
+outfile.close()
 </code></pre>
-</li>
-<li><p>メカニズムをインプットファイルから読み込んでオブジェクトを作成する</p>
-<pre><code class="lang-python">gas = ct.Solution(<span class="hljs-string">"gri30.yaml"</span>)
-</code></pre>
-</li>
-<li>上記の例では、Canteraがデフォルトで用意している、炭化水素の燃焼を記述するGRI-Mech3.0が書かれたファイルをロードする</li>
-<li><p>データファイルはCantera Pythonライブラリにある"data"に含まれている</p>
-</li>
-<li><p>系の初期条件を設定する</p>
-</li>
-<li><p><code>gas</code>で読み込んだ場合はそれらの初期条件(温度、圧力、モル分率など)を設定する</p>
-</li>
-<li><p>化学反応のシミュレーションを行う</p>
-</li>
-<li>系が平衡状態にあるかそうでないかで計算方法が大きく異なる</li>
-</ol>
-<h1 id="インプットファイルの作成">インプットファイルの作成</h1>
-<ul>
-<li>インプットファイルは以下の方法で準備する<ol>
-<li>Canteraに付属している既存の入力ファイルを使用する</li>
-<li>Chemkin (CK) 形式の既存のメカニズムをYAML形式に変換する</li>
-<li>新規にYAMLファイルを作成するか、既存のファイルを編集して作成する</li>
-</ol>
-</li>
-<li>Canteraに付属しているファイルの例<ul>
-<li>天然ガス燃焼: <code>gri30.yaml</code></li>
-<li>高温空気: <code>air.yaml</code></li>
-<li>水素/酸素反応メカニズム: <code>h2o2.yaml</code></li>
-<li>液体-蒸気領域の純粋な流体: <code>liquidvapor.yaml</code></li>
-<li>表面反応メカニズム: <code>ptcombust.yaml</code>, <code>diamond.yaml</code></li>
-</ul>
-</li>
-</ul>
 
                                 
                                 </section>
@@ -255,14 +279,10 @@
 
             
                 
-                <a href="./" class="navigation navigation-prev " aria-label="Previous page: Introduction">
+                <a href="reaction.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Reaction">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
-                
-                <a href="equilibrium.html" class="navigation navigation-next " aria-label="Next page: Equilibrium">
-                    <i class="fa fa-angle-right"></i>
-                </a>
                 
             
         
@@ -271,7 +291,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Basic","level":"1.2","depth":1,"next":{"title":"Equilibrium","level":"1.3","depth":1,"path":"equilibrium.md","ref":"equilibrium.md","articles":[]},"previous":{"title":"Introduction","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["hide-published-with","copy-code-button"],"pluginsConfig":{"hide-published-with":{},"copy-code-button":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"basic.md","mtime":"2024-11-03T13:49:13.938Z","type":"markdown"},"gitbook":{"version":"6.0.2","time":"2024-11-05T14:16:27.866Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Surface","level":"1.5","depth":1,"previous":{"title":"Reaction","level":"1.4","depth":1,"path":"reaction.md","ref":"reaction.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["hide-published-with","copy-code-button"],"pluginsConfig":{"hide-published-with":{},"copy-code-button":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"surface.md","mtime":"2024-11-05T14:41:37.821Z","type":"markdown"},"gitbook":{"version":"6.0.2","time":"2024-11-05T14:44:23.094Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

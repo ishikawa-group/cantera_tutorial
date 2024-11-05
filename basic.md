@@ -23,12 +23,12 @@ gas = ct.Solution("gri30.yaml")
 
 # インプットファイルの作成
 * インプットファイルは以下の方法で準備する
-  1. Canteraに付属している既存の入力ファイルを使用する
-  2. Chemkin (CK) 形式の既存のメカニズムをYAML形式に変換する
-  3. 新規にYAMLファイルを作成するか、既存のファイルを編集して作成する
+    1. Canteraに付属している既存の入力ファイルを使用する
+    2. Chemkin (CK) 形式の既存のメカニズムをYAML形式に変換する
+    3. 新規にYAMLファイルを作成するか、既存のファイルを編集して作成する
 * Canteraに付属しているファイルの例
-  + 天然ガス燃焼: `gri30.yaml`
-  + 高温空気: `air.yaml`
-  + 水素/酸素反応メカニズム: `h2o2.yaml`
-  + 液体-蒸気領域の純粋な流体: `liquidvapor.yaml`
-  + 表面反応メカニズム: `ptcombust.yaml`, `diamond.yaml`
+    + 天然ガス燃焼: `gri30.yaml`
+    + 高温空気: `air.yaml`
+    + 水素/酸素反応メカニズム: `h2o2.yaml`
+    + 液体-蒸気領域の純粋な流体: `liquidvapor.yaml`
+    + 表面反応メカニズム: `ptcombust.yaml`, `diamond.yaml`
