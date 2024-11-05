@@ -108,8 +108,9 @@ diagram.write_dot(dot_file)
 os.system(f"dot {dot_file} -Tpng -o{img_file}")
 ```
 
+<!--
 ## Reaction - Simple?
-* asdf
+* 
 
 ```python{cmd}
 import cantera as ct
@@ -147,3 +148,4 @@ for name, conc in zip(species_names, concentrations):
 print(f"Final Temperature: {reactor.T:.2f} K")
 print(f"Final Pressure: {reactor.thermo.P:.2f} Pa")
 ```
+-->

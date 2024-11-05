@@ -56,8 +56,6 @@
     <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="surface.html" />
-    
     
     <link rel="prev" href="equilibrium.html" />
     
@@ -133,19 +131,6 @@
             
                     
                     Reaction
-            
-                </a>
-            
-
-            
-        </li>
-    
-        <li class="chapter " data-level="1.5" data-path="surface.html">
-            
-                <a href="surface.html">
-            
-                    
-                    Surface
             
                 </a>
             
@@ -242,49 +227,49 @@
 </li>
 </ol>
 <h2 id="スクリプトの例">スクリプトの例</h2>
-<ol>
-<li>メカニズムの読み込み</li>
-</ol>
-<pre><code class="lang-python{cmd}">import cantera as ct
-import csv
+<ul>
+<li>上記をまとめたスクリプトの例</li>
+</ul>
+<pre><code class="lang-python"><span class="hljs-keyword">import</span> cantera <span class="hljs-keyword">as</span> ct
+<span class="hljs-keyword">import</span> csv
 
-p = ct.one_atm  # pressure: 1 atm =  1013 [Pa]
-Tin = 1500  # temperature [K]
-comp = "CH4:1, O2:1, AR:0.5"
-vin = 0.005  # inlet gas velocity [m/s]
-length = 5.0e-6  # length of reactor [m]
-area = 1.0e-4 # cross section area of reactor [m^2]
-n_reactor = 200  # numerical parameter to divide reactor
+p = ct.one_atm  <span class="hljs-comment"># pressure: 1 atm =  1013 [Pa]</span>
+Tin = <span class="hljs-number">1500</span>  <span class="hljs-comment"># temperature [K]</span>
+comp = <span class="hljs-string">"CH4:1, O2:1, AR:0.5"</span>
+vin = <span class="hljs-number">0.005</span>  <span class="hljs-comment"># inlet gas velocity [m/s]</span>
+length = <span class="hljs-number">5.0e-6</span>  <span class="hljs-comment"># length of reactor [m]</span>
+area = <span class="hljs-number">1.0e-4</span> <span class="hljs-comment"># cross section area of reactor [m^2]</span>
+n_reactor = <span class="hljs-number">200</span>  <span class="hljs-comment"># numerical parameter to divide reactor</span>
 
-gas = ct.Solution("gri30.yaml")
+gas = ct.Solution(<span class="hljs-string">"gri30.yaml"</span>)
 gas.TPX = Tin, p, comp
-mdot = vin * area * gas.density  # mass flow rate
-dx = length / n_reactor  # length of one simulation cell
+mdot = vin * area * gas.density  <span class="hljs-comment"># mass flow rate</span>
+dx = length / n_reactor  <span class="hljs-comment"># length of one simulation cell</span>
 
 r = ct.IdealGasReactor(gas)
 r.volume = area * dx
 
-upstream = ct.Reservoir(gas, name="upstream")
-downstream = ct.Reservoir(gas, name="downstream")
+upstream = ct.Reservoir(gas, name=<span class="hljs-string">"upstream"</span>)
+downstream = ct.Reservoir(gas, name=<span class="hljs-string">"downstream"</span>)
 m = ct.MassFlowController(upstream=upstream, downstream=r, mdot=mdot)
-v = ct.PressureController(upstream=r, downstream=downstream, primary=m, K=1.0e-5)
+v = ct.PressureController(upstream=r, downstream=downstream, primary=m, K=<span class="hljs-number">1.0e-5</span>)
 net = ct.ReactorNet([r])
 
-# solve
-outfile = open("pfr.csv", "w", newline="")
+<span class="hljs-comment"># solve</span>
+outfile = <span class="hljs-built_in">open</span>(<span class="hljs-string">"pfr.csv"</span>, <span class="hljs-string">"w"</span>, newline=<span class="hljs-string">""</span>)
 writer = csv.writer(outfile)
-writer.writerow(["Distance [m]", "u [m/s]", "time [s]", "T [K]", "P [Pa]"] + gas.species_names)
+writer.writerow([<span class="hljs-string">"Distance [m]"</span>, <span class="hljs-string">"u [m/s]"</span>, <span class="hljs-string">"time [s]"</span>, <span class="hljs-string">"T [K]"</span>, <span class="hljs-string">"P [Pa]"</span>] + gas.species_names)
 
-t_res = 0.0
-for n in range(n_reactor):
+t_res = <span class="hljs-number">0.0</span>
+<span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n_reactor):
   gas.TDY = r.thermo.TDY
   upstream.syncState()
   net.reinitialize()
   net.advance_to_steady_state()
   dist = n * dx
-  u = mdot / area / r.thermo.density  # velocity
-  t_res += r.mass / mdot  # residence time
-  writer.writerow([dist, u, t_res, r.T, r.thermo.P] + list(r.thermo.X))
+  u = mdot / area / r.thermo.density  <span class="hljs-comment"># velocity</span>
+  t_res += r.mass / mdot  <span class="hljs-comment"># residence time</span>
+  writer.writerow([dist, u, t_res, r.T, r.thermo.P] + <span class="hljs-built_in">list</span>(r.thermo.X))
 
 outfile.close()
 </code></pre>
@@ -317,11 +302,12 @@ img_file = <span class="hljs-string">"asdf.png"</span>
 diagram.write_dot(dot_file)
 os.system(<span class="hljs-string">f"dot <span class="hljs-subst">{dot_file}</span> -Tpng -o<span class="hljs-subst">{img_file}</span>"</span>)
 </code></pre>
-<h2 id="reaction---simple">Reaction - Simple?</h2>
-<ul>
-<li>asdf</li>
-</ul>
-<pre><code class="lang-python{cmd}">import cantera as ct
+<!--
+## Reaction - Simple?
+* 
+
+```python{cmd}
+import cantera as ct
 
 # Create a gas mixture
 gas = ct.Solution("gri30.yaml")
@@ -341,7 +327,7 @@ network = ct.ReactorNet([reactor])
 time = 0.0
 end_time = 1.0  # seconds
 
-while time &lt; end_time:
+while time < end_time:
   time = network.step()
   print(f"Time: {time:.2f} s, Temperature: {reactor.T:.2f} K, Pressure: {reactor.thermo.P:.2f} Pa")
 
@@ -355,8 +341,8 @@ for name, conc in zip(species_names, concentrations):
 
 print(f"Final Temperature: {reactor.T:.2f} K")
 print(f"Final Pressure: {reactor.thermo.P:.2f} Pa")
-</code></pre>
-
+```
+-->
                                 
                                 </section>
                             
@@ -383,14 +369,10 @@ print(f"Final Pressure: {reactor.thermo.P:.2f} Pa")
 
             
                 
-                <a href="equilibrium.html" class="navigation navigation-prev " aria-label="Previous page: Equilibrium">
+                <a href="equilibrium.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Equilibrium">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
-                
-                <a href="surface.html" class="navigation navigation-next " aria-label="Next page: Surface">
-                    <i class="fa fa-angle-right"></i>
-                </a>
                 
             
         
@@ -399,7 +381,7 @@ print(f"Final Pressure: {reactor.thermo.P:.2f} Pa")
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Reaction","level":"1.4","depth":1,"next":{"title":"Surface","level":"1.5","depth":1,"path":"surface.md","ref":"surface.md","articles":[]},"previous":{"title":"Equilibrium","level":"1.3","depth":1,"path":"equilibrium.md","ref":"equilibrium.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["hide-published-with"],"pluginsConfig":{"hide-published-with":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"reaction.md","mtime":"2024-11-03T15:22:48.400Z","type":"markdown"},"gitbook":{"version":"6.0.2","time":"2024-11-05T00:50:58.088Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Reaction","level":"1.4","depth":1,"previous":{"title":"Equilibrium","level":"1.3","depth":1,"path":"equilibrium.md","ref":"equilibrium.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["hide-published-with"],"pluginsConfig":{"hide-published-with":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"reaction.md","mtime":"2024-11-05T01:00:37.405Z","type":"markdown"},"gitbook":{"version":"6.0.2","time":"2024-11-05T01:01:12.015Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
