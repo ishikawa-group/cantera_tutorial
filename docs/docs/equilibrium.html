@@ -3,7 +3,7 @@
 <html lang="" >
     <head>
         <meta charset="UTF-8">
-        <title>Introduction · HonKit</title>
+        <title>Equilibrium · HonKit</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="HonKit 6.0.2">
@@ -56,8 +56,10 @@
     <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="basic.html" />
+    <link rel="next" href="reaction.html" />
     
+    
+    <link rel="prev" href="basic.html" />
     
 
     </head>
@@ -86,7 +88,7 @@
         
         
     
-        <li class="chapter active" data-level="1.1" data-path="./">
+        <li class="chapter " data-level="1.1" data-path="./">
             
                 <a href="./">
             
@@ -112,7 +114,7 @@
             
         </li>
     
-        <li class="chapter " data-level="1.3" data-path="equilibrium.html">
+        <li class="chapter active" data-level="1.3" data-path="equilibrium.html">
             
                 <a href="equilibrium.html">
             
@@ -168,7 +170,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="." >Introduction</a>
+        <a href="." >Equilibrium</a>
     </h1>
 </div>
 
@@ -183,20 +185,83 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="canteraの使い方">Canteraの使い方</h1>
+                                <h1 id="化学平衡">化学平衡</h1>
 <ul>
-<li>Canteraは化学反応を行うオープンソースのパッケージであり、PythonやMatlabのインターフェースが提供されている<ul>
-<li><a href="https://cantera.org/" target="_blank">https://cantera.org/</a></li>
+<li>系が化学平衡にある場合の物理量・化学量を求める</li>
 </ul>
-</li>
-<li>Canteraで扱えるシミュレーションとして以下のようなものがある<ul>
-<li>化学反応論 (chemical kinetics)</li>
-<li>熱力学・熱化学 (thermodynamics)</li>
-<li>輸送現象 (transport process)</li>
+<h2 id="例">例</h2>
+<ul>
+<li>以下では、酸素とメタンがモル分率1:1で混合した気体の例を考える</li>
 </ul>
-</li>
-<li>本ページではCantera Python Interfaceの使い方を説明する</li>
+<pre><code class="lang-python"><span class="hljs-keyword">import</span> cantera <span class="hljs-keyword">as</span> ct
+gas = ct.Solution(<span class="hljs-string">"gri30.yaml"</span>)
+
+A = ct.Quantity(gas, constant=<span class="hljs-string">"HP"</span>)
+A.TPX = <span class="hljs-number">300</span>, ct.one_atm, <span class="hljs-string">"O2:0.5, CH4:0.5"</span>
+
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"--- Before equilibration ---"</span>)
+<span class="hljs-built_in">print</span>(A.report())
+
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"--- After equilibration ---"</span>)
+A.equilibrate(<span class="hljs-string">"TP"</span>)
+<span class="hljs-built_in">print</span>(A.report())
+</code></pre>
+<ul>
+<li>化学反応メカニズムにあたる<code>Solution</code>クラスから、ある化学量をもつ状態を発生するために<code>Quantity</code>クラスを呼び出す</li>
+<li>上記の例では、エンタルピー<code>H</code>と圧力<code>P</code>が一定となる条件<code>A</code>を作成する</li>
+<li><code>A</code>の初期条件(温度、圧力、モル分率)をクラス属性<code>TPX</code>に割り当てる</li>
+<li>条件設定後、<code>.equilibrate</code>で平衡化する。この場合、温度と圧力を一定で平衡化している</li>
+<li>平衡化の前後で質量分率などが変化している</li>
 </ul>
+<h2 id="混合気体">混合気体</h2>
+<ul>
+<li>2種の気体系を混合する場合</li>
+</ul>
+<pre><code class="lang-python"><span class="hljs-keyword">import</span> cantera <span class="hljs-keyword">as</span> ct
+gas = ct.Solution(<span class="hljs-string">"gri30.yaml"</span>)
+
+A = ct.Quantity(gas, constant=<span class="hljs-string">"HP"</span>)
+A.TPX = <span class="hljs-number">300</span>, ct.one_atm, <span class="hljs-string">"O2:0.2, N2:0.8"</span>
+
+B = ct.Quantity(gas, constant=<span class="hljs-string">"HP"</span>)
+B.TPX = <span class="hljs-number">300</span>, ct.one_atm, <span class="hljs-string">"CH4:1"</span>
+
+A.moles = <span class="hljs-number">1</span>
+
+nO2 = A.X[A.species_index(<span class="hljs-string">"O2"</span>)]
+B.moles = nO2 * <span class="hljs-number">0.5</span>
+
+M = A + B
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"--- Before equilibration ---"</span>)
+<span class="hljs-built_in">print</span>(M.report())
+
+<span class="hljs-built_in">print</span>(<span class="hljs-string">"--- After equilibration ---"</span>)
+M.equilibrate(<span class="hljs-string">"TP"</span>)
+<span class="hljs-built_in">print</span>(M.report())
+</code></pre>
+<h2 id="熱力学量">熱力学量</h2>
+<ul>
+<li>平衡化後の熱力学量を算出する場合</li>
+</ul>
+<pre><code class="lang-python"><span class="hljs-keyword">import</span> cantera <span class="hljs-keyword">as</span> ct
+
+<span class="hljs-comment"># Create a gas mixture</span>
+gas = ct.Solution(<span class="hljs-string">"gri30.yaml"</span>)
+
+<span class="hljs-comment"># Set the state</span>
+gas.TPX = <span class="hljs-number">1200</span>, <span class="hljs-number">101325</span>, <span class="hljs-string">"CH4:1, O2:2"</span>
+
+<span class="hljs-comment"># Calculate properties</span>
+q1 = ct.Quantity(gas)
+enthalpy = q1.enthalpy
+entropy = q1.entropy
+cp = gas.cp
+
+<span class="hljs-comment"># Output results</span>
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f"Enthalpy: <span class="hljs-subst">{enthalpy:<span class="hljs-number">5.3</span>f}</span> J/kg"</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f"Entropy: <span class="hljs-subst">{entropy:<span class="hljs-number">5.3</span>f}</span> J/kg·K"</span>)
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f"Specific Heat (Cp): <span class="hljs-subst">{cp:<span class="hljs-number">5.3</span>f}</span> J/kg·K"</span>)
+</code></pre>
 
                                 
                                 </section>
@@ -224,8 +289,12 @@
 
             
                 
+                <a href="basic.html" class="navigation navigation-prev " aria-label="Previous page: Basic">
+                    <i class="fa fa-angle-left"></i>
+                </a>
                 
-                <a href="basic.html" class="navigation navigation-next navigation-unique" aria-label="Next page: Basic">
+                
+                <a href="reaction.html" class="navigation navigation-next " aria-label="Next page: Reaction">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -236,7 +305,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Introduction","level":"1.1","depth":1,"next":{"title":"Basic","level":"1.2","depth":1,"path":"basic.md","ref":"basic.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["hide-published-with","copy-code-button"],"pluginsConfig":{"hide-published-with":{},"copy-code-button":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"README.md","mtime":"2024-11-03T13:22:26.652Z","type":"markdown"},"gitbook":{"version":"6.0.2","time":"2024-11-05T14:23:47.229Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Equilibrium","level":"1.3","depth":1,"next":{"title":"Reaction","level":"1.4","depth":1,"path":"reaction.md","ref":"reaction.md","articles":[]},"previous":{"title":"Basic","level":"1.2","depth":1,"path":"basic.md","ref":"basic.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["hide-published-with","copy-code-button"],"pluginsConfig":{"hide-published-with":{},"copy-code-button":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"equilibrium.md","mtime":"2024-11-03T15:22:05.508Z","type":"markdown"},"gitbook":{"version":"6.0.2","time":"2024-11-05T14:16:27.866Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
