@@ -31,9 +31,9 @@ gas.TPX = 500, ct.one_atm, "CH4:1, O2:1, AR:0.5"
   + `.advance_to_steady_state()`: 定常状態まで進める
 
 ## スクリプトの例
-1. メカニズムの読み込み
+* 上記をまとめたスクリプトの例
 
-```python{cmd}
+```python
 import cantera as ct
 import csv
 
