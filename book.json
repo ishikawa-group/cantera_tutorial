@@ -1,3 +1,13 @@
 {
-    "plugins":["hide-published-with", "copy-code-button"]
+  "title":"Cantera-Tutorial",
+  "language":"ja",
+  "plugins":[
+    "hide-published-with",
+    "intopic-toc",
+    "back-to-top-button",
+    "katex"
+  ],
+  "styles": {
+    "website": "styles/website.css"
+  }
 }

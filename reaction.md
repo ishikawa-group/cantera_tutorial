@@ -1,7 +1,17 @@
 # 化学反応
 * Canteraで化学反応のシミュレーションを行う方法をここで解説する
 
-## 基本的な流れ
+## 理論的背景
+* ここでは、反応器として **plug flow reactor (PFR)** を仮定する
+* PFRは管型反応器のモデルとしてよく用いられる
+* 計算上は、管をいくつかの部位に分割して各部位はバッチ反応器に近いcontinuoues stirred tank reactor (CSTR)として計算するケースもよく用いられる。ここではこの方法を採用することにする
+* 管をいくつに分割するかの分割数(下のコードにおける`n_reactor`)を定義する必要がある
+
+<div align="center">
+<img src="./figures/cstr.png" width=50%>
+</div>
+
+## コードの基本的な流れ
 1. メカニズムをファイルから読み込んでオブジェクトを作成する
 ```python
 gas = ct.Solution("gri30.yaml")
@@ -106,44 +116,4 @@ img_file = "asdf.png"
 
 diagram.write_dot(dot_file)
 os.system(f"dot {dot_file} -Tpng -o{img_file}")
-```
-
-## Reaction - Simple?
-* Simple version
-
-```python{cmd}
-import cantera as ct
-
-# Create a gas mixture
-gas = ct.Solution("gri30.yaml")
-
-# Set initial state
-gas.TPX = 1000, 101325, "CH4:1, O2:2, N2:7.52"
-
-# Analyze the first reaction
-reaction = gas.reaction(0)
-print(f"Reaction: {reaction.equation}")
-
-# Create a constant volume reactor
-reactor = ct.IdealGasReactor(gas)
-network = ct.ReactorNet([reactor])
-
-# Simulate the reaction
-time = 0.0
-end_time = 1.0  # seconds
-
-while time < end_time:
-    time = network.step()
-    print(f"Time: {time:.2f} s, Temperature: {reactor.T:.2f} K, Pressure: {reactor.thermo.P:.2f} Pa")
-
-# Final concentrations and properties
-species_names = gas.species_names
-concentrations = reactor.thermo.concentrations
-
-print("Final Concentrations:")
-for name, conc in zip(species_names, concentrations):
-    print(f"{name}: {conc:.4f} mol/m³")
-
-print(f"Final Temperature: {reactor.T:.2f} K")
-print(f"Final Pressure: {reactor.thermo.P:.2f} Pa")
 ```

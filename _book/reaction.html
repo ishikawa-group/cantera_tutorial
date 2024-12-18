@@ -1,0 +1,491 @@
+
+<!DOCTYPE HTML>
+<html lang="ja" >
+    <head>
+        <meta charset="UTF-8">
+        <title>Reaction · Cantera-Tutorial</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="HonKit 6.0.2">
+        
+        
+        
+    
+    <link rel="stylesheet" href="gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-intopic-toc/style.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-back-to-top-button/plugin.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/honkit-plugin-katex/katex.min.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+        <link rel="stylesheet" href="styles/website.css">
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="surface.html" />
+    
+    
+    <link rel="prev" href="equilibrium.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book honkit-cloak">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="検索ワードを入力" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="basic.html">
+            
+                <a href="basic.html">
+            
+                    
+                    Basic
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="equilibrium.html">
+            
+                <a href="equilibrium.html">
+            
+                    
+                    Equilibrium
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.4" data-path="reaction.html">
+            
+                <a href="reaction.html">
+            
+                    
+                    Reaction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" data-path="surface.html">
+            
+                <a href="surface.html">
+            
+                    
+                    Surface
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" data-path="mechanism_file.html">
+            
+                <a href="mechanism_file.html">
+            
+                    
+                    Mechanism file
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://github.com/honkit/honkit" target="blank" class="gitbook-link">
+            HonKitで公開 
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="." >Reaction</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="化学反応">化学反応</h1>
+<ul>
+<li>Canteraで化学反応のシミュレーションを行う方法をここで解説する</li>
+</ul>
+<h2 id="理論的背景">理論的背景</h2>
+<ul>
+<li>ここでは、反応器として <strong>plug flow reactor (PFR)</strong> を仮定する</li>
+<li>PFRは管型反応器のモデルとしてよく用いられる</li>
+<li>計算上は、管をいくつかの部位に分割して各部位はバッチ反応器に近いcontinuoues stirred tank reactor (CSTR)として計算するケースもよく用いられる。ここではこの方法を採用することにする</li>
+<li>管をいくつに分割するかの分割数(下のコードにおける<code>n_reactor</code>)を定義する必要がある</li>
+</ul>
+<div align="center">
+<img src="figures/cstr.png" width="50%"></img>
+</div>
+
+<h2 id="コードの基本的な流れ">コードの基本的な流れ</h2>
+<ol>
+<li><p>メカニズムをファイルから読み込んでオブジェクトを作成する</p>
+<pre><code class="lang-python">gas = ct.Solution(<span class="hljs-string">"gri30.yaml"</span>)
+</code></pre>
+</li>
+<li><p>系の初期条件を設定する</p>
+</li>
+<li><p>温度、圧力、モル分率を設定する</p>
+<pre><code class="lang-python">gas.TPX = <span class="hljs-number">500</span>, ct.one_atm, <span class="hljs-string">"CH4:1, O2:1, AR:0.5"</span>
+</code></pre>
+</li>
+<li><p>反応器を設定する</p>
+</li>
+<li>反応器を設定する。反応器の種類は様々であるが、最も簡単な<code>IdealGasReactor</code>を用いる</li>
+<li>反応器だけでなく、以下のような設定を通常置く<ul>
+<li><code>ct.Reservoir</code>: 反応器の前後</li>
+<li><code>ct.MassFlowController</code>: 反応器の前<ul>
+<li>upstreamとdownstreamを引数で指定</li>
+</ul>
+</li>
+<li><code>ct.PressureController</code>: 反応器の後<ul>
+<li>upstreamとdonwstreamを引数で指定</li>
+<li>質量流量速度を求めるデバイスをprimaryで指定(<code>MassFlowController</code>でよい)</li>
+<li>Kという定数に1.0e-5を入れるとよい？ -&gt; 調査中</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>反応器の設定が終わったら、<strong>反応器のみ</strong>を<code>ReactorNet</code>に設定する</p>
+</li>
+<li><p>化学反応をシミュレーションする</p>
+</li>
+<li><code>ReactorNet</code>のメソッドを使って時間ステップを進めることができる。以下のようなメソッドがある<ul>
+<li><code>.advance(tout)</code>: <code>tout</code>まで進める</li>
+<li><code>.advance_to_steady_state()</code>: 定常状態まで進める</li>
+</ul>
+</li>
+</ol>
+<h2 id="スクリプトの例">スクリプトの例</h2>
+<ul>
+<li>上記をまとめたスクリプトの例</li>
+</ul>
+<pre><code class="lang-python"><span class="hljs-keyword">import</span> cantera <span class="hljs-keyword">as</span> ct
+<span class="hljs-keyword">import</span> csv
+
+p = ct.one_atm  <span class="hljs-comment"># pressure: 1 atm =  1013 [Pa]</span>
+Tin = <span class="hljs-number">1500</span>  <span class="hljs-comment"># temperature [K]</span>
+comp = <span class="hljs-string">"CH4:1, O2:1, AR:0.5"</span>
+vin = <span class="hljs-number">0.005</span>  <span class="hljs-comment"># inlet gas velocity [m/s]</span>
+length = <span class="hljs-number">5.0e-6</span>  <span class="hljs-comment"># length of reactor [m]</span>
+area = <span class="hljs-number">1.0e-4</span> <span class="hljs-comment"># cross section area of reactor [m^2]</span>
+n_reactor = <span class="hljs-number">200</span>  <span class="hljs-comment"># numerical parameter to divide reactor</span>
+
+gas = ct.Solution(<span class="hljs-string">"gri30.yaml"</span>)
+gas.TPX = Tin, p, comp
+mdot = vin * area * gas.density  <span class="hljs-comment"># mass flow rate</span>
+dx = length / n_reactor  <span class="hljs-comment"># length of one simulation cell</span>
+
+r = ct.IdealGasReactor(gas)
+r.volume = area * dx
+
+upstream = ct.Reservoir(gas, name=<span class="hljs-string">"upstream"</span>)
+downstream = ct.Reservoir(gas, name=<span class="hljs-string">"downstream"</span>)
+m = ct.MassFlowController(upstream=upstream, downstream=r, mdot=mdot)
+v = ct.PressureController(upstream=r, downstream=downstream, primary=m, K=<span class="hljs-number">1.0e-5</span>)
+net = ct.ReactorNet([r])
+
+<span class="hljs-comment"># solve</span>
+outfile = <span class="hljs-built_in">open</span>(<span class="hljs-string">"pfr.csv"</span>, <span class="hljs-string">"w"</span>, newline=<span class="hljs-string">""</span>)
+writer = csv.writer(outfile)
+writer.writerow([<span class="hljs-string">"Distance [m]"</span>, <span class="hljs-string">"u [m/s]"</span>, <span class="hljs-string">"time [s]"</span>, <span class="hljs-string">"T [K]"</span>, <span class="hljs-string">"P [Pa]"</span>] + gas.species_names)
+
+t_res = <span class="hljs-number">0.0</span>
+<span class="hljs-keyword">for</span> n <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n_reactor):
+    gas.TDY = r.thermo.TDY
+    upstream.syncState()
+    net.reinitialize()
+    net.advance_to_steady_state()
+    dist = n * dx
+    u = mdot / area / r.thermo.density  <span class="hljs-comment"># velocity</span>
+    t_res += r.mass / mdot  <span class="hljs-comment"># residence time</span>
+    writer.writerow([dist, u, t_res, r.T, r.thermo.P] + <span class="hljs-built_in">list</span>(r.thermo.X))
+
+outfile.close()
+</code></pre>
+<h2 id="反応経路解析">反応経路解析</h2>
+<ul>
+<li>反応経路を描くことができる</li>
+</ul>
+<pre><code class="lang-python"><span class="hljs-keyword">import</span> cantera <span class="hljs-keyword">as</span> ct
+<span class="hljs-keyword">import</span> os
+
+gas = ct.Solution(<span class="hljs-string">"gri30.yaml"</span>)
+gas.TPX = <span class="hljs-number">1500</span>, ct.one_atm, <span class="hljs-string">"CH4:0.25, O2:1.0, N2:3.76"</span>
+
+r = ct.IdealGasReactor(gas)
+net = ct.ReactorNet([r])
+
+T = r.T
+<span class="hljs-keyword">while</span> T &lt; <span class="hljs-number">1900</span>:
+    net.step()
+    T = r.T
+
+element = <span class="hljs-string">"N"</span>
+diagram = ct.ReactionPathDiagram(gas, element)
+diagram.title = <span class="hljs-string">"asdf"</span>
+diagram.label_threshold = <span class="hljs-number">0.01</span>
+
+dot_file = <span class="hljs-string">"asdf.dot"</span>
+img_file = <span class="hljs-string">"asdf.png"</span>
+
+diagram.write_dot(dot_file)
+os.system(<span class="hljs-string">f"dot <span class="hljs-subst">{dot_file}</span> -Tpng -o<span class="hljs-subst">{img_file}</span>"</span>)
+</code></pre>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="equilibrium.html" class="navigation navigation-prev " aria-label="Previous page: Equilibrium">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="surface.html" class="navigation navigation-next " aria-label="Next page: Surface">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Reaction","level":"1.4","depth":1,"next":{"title":"Surface","level":"1.5","depth":1,"path":"surface.md","ref":"surface.md","articles":[]},"previous":{"title":"Equilibrium","level":"1.3","depth":1,"path":"equilibrium.md","ref":"equilibrium.md","articles":[]},"dir":"ltr"},"config":{"plugins":["hide-published-with","intopic-toc","back-to-top-button","katex","livereload"],"styles":{"website":"styles/website.css"},"pluginsConfig":{"intopic-toc":{"selector":".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section h5, .markdown-section h6","mode":"nested","maxDepth":6,"isCollapsed":true,"isScrollspyActive":true,"visible":true,"label":"In this article"},"livereload":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"hide-published-with":{},"katex":{},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"back-to-top-button":{},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Cantera-Tutorial","language":"ja","gitbook":"*"},"file":{"path":"reaction.md","mtime":"2024-12-18T07:41:47.491Z","type":"markdown"},"gitbook":{"version":"6.0.2","time":"2024-12-18T07:57:34.665Z"},"basePath":".","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <noscript>
+        <style>
+            .honkit-cloak {
+                display: block !important;
+            }
+        </style>
+    </noscript>
+    <script>
+        // Restore sidebar state as critical path for prevent layout shift
+        function __init__getSidebarState(defaultValue){
+            var baseKey = "";
+            var key = baseKey + ":sidebar";
+            try {
+                var value = localStorage[key];
+                if (value === undefined) {
+                    return defaultValue;
+                }
+                var parsed = JSON.parse(value);
+                return parsed == null ? defaultValue : parsed;
+            } catch (e) {
+                return defaultValue;
+            }
+        }
+        function __init__restoreLastSidebarState() {
+            var isMobile = window.matchMedia("(max-width: 600px)").matches;
+            if (isMobile) {
+                // Init last state if not mobile
+                return;
+            }
+            var sidebarState = __init__getSidebarState(true);
+            var book = document.querySelector(".book");
+            // Show sidebar if it enabled
+            if (sidebarState && book) {
+                book.classList.add("without-animation", "with-summary");
+            }
+        }
+
+        try {
+            __init__restoreLastSidebarState();
+        } finally {
+            var book = document.querySelector(".book");
+            book.classList.remove("honkit-cloak");
+        }
+    </script>
+    <script src="gitbook/gitbook.js"></script>
+    <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/gitbook-plugin-hide-published-with/plugin.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-intopic-toc/anchor.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-intopic-toc/gumshoe.polyfills.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-intopic-toc/plugin.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-back-to-top-button/plugin.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-livereload/plugin.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="gitbook/@honkit/honkit-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

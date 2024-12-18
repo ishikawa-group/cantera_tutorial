@@ -1,5 +1,15 @@
 # 表面反応
-```python{cmd}
+* 表面反応を取り込むことにより、触媒反応を計算することができる
+* 表面反応において変更すべき点は以下の通り
+  + `area_cat_vol` = 3149.0  # catalyst surface area [m^2/m^3]
+  + `porosity` = 1.0  # catalyst porosity
+  + `n_reactor` = 200  # numerical parameter to divide reactor
+  + `surf = ct.Interface(filename, "Pt_surf", [gas])`
+  + `surf.TP = Tin, p`
+
+## スクリプトの例
+
+```python
 import cantera as ct
 import csv
 
